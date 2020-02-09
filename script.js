@@ -1,43 +1,12 @@
-const NAME = "John";
 const WELCOME_MESSAGE_TEMPLATE = ["night", "morning", "afternoon", "evening"];
 
-// All shortcuts are in a `SHORTCUT_STARTER+shortcutKey` format. 
+// All shortcuts are in a `SHORTCUT_STARTER+shortcutKey` format.
 // So, for example, pressing `tab+q` would redirect you to https://google.com/?q=q
-const SHORTCUT_STARTER = 'tab' 
+const SHORTCUT_STARTER = 'tab'
 
 // How much time (in milliseconds) you have to press shortcutKey after pressing SHORTCUT_STARTER.
 // Also change --SHORTCUT_TIMEOUT in styles.css if you change this option.
 const SHORTCUT_TIMEOUT = 1500;
-
-// The groups of links are generated from this object. Edit it to edit the page's contents.
-// shortcutKey must hold an all-lowercase single button. Theoretically should work with values like `esc` and `f1`,
-// but intended to be used with just regular latin letters.
-const MASTER_MAP = [
-    {
-        "groupName": "Studies",
-        "items":[
-            {"name": "Item A", "shortcutKey": "q", "url": "https://google.com/?q=q"},
-            {"name": "Item B", "shortcutKey": "w", "url": "https://google.com/?q=w"},
-            {"name": "Item C", "shortcutKey": "e", "url": "https://google.com/?q=e"}
-        ]
-    },
-    {
-        "groupName": "Work",
-        "items":[
-            {"name": "Item D", "shortcutKey": "a", "url": "https://google.com/?q=a"},
-            {"name": "Item E", "shortcutKey": "s", "url": "https://google.com/?q=s"},
-            {"name": "Item F", "shortcutKey": "d", "url": "https://google.com/?q=d"}
-        ]
-    },
-    {
-        "groupName": "Personal",
-        "items":[
-            {"name": "Item I", "shortcutKey": "z", "url": "https://google.com/?q=z"},
-            {"name": "Item J", "shortcutKey": "x", "url": "https://google.com/?q=x"},
-            {"name": "Item K", "shortcutKey": "c", "url": "https://google.com/?q=c"}
-        ]
-    }
-]
 
 let $container = document.getElementById("content");
 let getUrl = {};
@@ -46,17 +15,21 @@ let $shortcutDisplayList = document.getElementsByClassName("shortcut");
 let listeningForShortcut = false;
 let listenerTimeout;
 
-function setupWelcomeMessage(){
+function setupBackgroundImage(DATA){
+    document.body.style.backgroundImage = `url(${DATA.background})`;
+}
+
+function setupWelcomeMessage(DATA){
     let curHours = new Date().getHours();
     curHours = Math.floor(curHours/6); // Simply dividing current hours by 6 proves to be a good enough aproximation.
     if (curHours == 4) curHours = 3;
-    let welcome = "Good " + WELCOME_MESSAGE_TEMPLATE[curHours] + ", " + NAME;
+    let welcome = "Good " + WELCOME_MESSAGE_TEMPLATE[curHours] + ", " + DATA.name;
     document.getElementById("welcome-string").innerHTML = welcome;
 }
 
-function setupGroups(){
-    for (let i = 0; i < MASTER_MAP.length; i++){
-        let curGroupData = MASTER_MAP[i];
+function setupGroups(DATA){
+    for (let i = 0; i < DATA.linkGroups.length; i++){
+        let curGroupData = DATA.linkGroups[i];
 
         let group = document.createElement("div");
         group.className = "group";
@@ -110,8 +83,12 @@ function shortcutListener(e) {
 }
 
 function main(){
-    setupWelcomeMessage();
-    setupGroups();
+    new CustomStartStorage().get()
+        .then(DATA => {
+            setupBackgroundImage(DATA);
+            setupWelcomeMessage(DATA);
+            setupGroups(DATA);
+        })
     document.addEventListener('keyup', shortcutListener, false);
 }
 
